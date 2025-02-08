@@ -81,14 +81,20 @@ def analyze():
         return jsonify({"error": "Subreddit name is required"}), 400
 
     try:
+        print(f"Fetching posts for subreddit: {subreddit_name}")
         posts = fetch_posts(subreddit_name)
+        print(f"Fetched {len(posts)} posts")
+
+        print("Analyzing posts...")
         top_keywords, avg_sentiment, sentiment_counts, keywords = analyze_posts(posts)
+        print(f"Analysis complete. Top keywords: {top_keywords}")
 
         # Generate Word Cloud
         wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
         wordcloud_path = BytesIO()
         wordcloud.to_image().save(wordcloud_path, format='PNG')
         wordcloud_base64 = wordcloud_path.getvalue().hex()  # Encode as base64
+        print("Generated Word Cloud")
 
         # Generate Sentiment Distribution Bar Chart
         sentiment_labels = list(sentiment_counts.keys())
@@ -100,6 +106,7 @@ def analyze():
         plt.savefig(sentiment_chart_path, format='png')
         plt.close()
         sentiment_chart_base64 = sentiment_chart_path.getvalue().hex()  # Encode as base64
+        print("Generated Sentiment Chart")
 
         # Generate Top Keywords Bar Chart
         keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
@@ -111,6 +118,7 @@ def analyze():
         plt.savefig(keywords_chart_path, format='png')
         plt.close()
         keywords_chart_base64 = keywords_chart_path.getvalue().hex()  # Encode as base64
+        print("Generated Keywords Chart")
 
         return jsonify({
             "avg_sentiment": avg_sentiment,
@@ -121,6 +129,8 @@ def analyze():
             "keywords_chart": keywords_chart_base64
         })
     except Exception as e:
+        print(f"Error in /analyze: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/download')
@@ -130,14 +140,21 @@ def download():
         return "Subreddit name is required", 400
 
     try:
+        print(f"Fetching posts for subreddit: {subreddit_name}")
         posts = fetch_posts(subreddit_name)
+        print(f"Fetched {len(posts)} posts")
+
+        print("Analyzing posts...")
         top_keywords, avg_sentiment, sentiment_counts, _ = analyze_posts(posts)
+        print(f"Analysis complete. Top keywords: {top_keywords}")
 
         # Create a DataFrame for top keywords
         df_keywords = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
+        print("Created DataFrame for top keywords")
 
         # Add sentiment counts to the DataFrame
         df_sentiment = pd.DataFrame(list(sentiment_counts.items()), columns=["Sentiment", "Count"])
+        print("Created DataFrame for sentiment counts")
 
         # Save DataFrames to an Excel file in memory
         output = BytesIO()
@@ -145,6 +162,7 @@ def download():
             df_keywords.to_excel(writer, sheet_name='Top Keywords', index=False)
             df_sentiment.to_excel(writer, sheet_name='Sentiment Distribution', index=False)
         output.seek(0)
+        print("Excel file generated successfully")
 
         # Return the Excel file as a downloadable response
         return send_file(
@@ -154,6 +172,8 @@ def download():
             download_name=f"{subreddit_name}_analysis.xlsx"
         )
     except Exception as e:
+        print(f"Error in /download: {e}")
+        traceback.print_exc()
         return str(e), 500
 
 if __name__ == '__main__':

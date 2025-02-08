@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, jsonify, send_file
 import praw
 import pandas as pd
 from collections import Counter
+import nltk
+nltk.download('stopwords')
+nltk.download('vader_lexicon')  # Required for sentiment analysis
 from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt

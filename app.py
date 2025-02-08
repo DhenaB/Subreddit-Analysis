@@ -88,7 +88,7 @@ def analyze():
         wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
         wordcloud_path = BytesIO()
         wordcloud.to_image().save(wordcloud_path, format='PNG')
-        wordcloud_path.seek(0)
+        wordcloud_base64 = wordcloud_path.getvalue().hex()  # Encode as base64
 
         # Generate Sentiment Distribution Bar Chart
         sentiment_labels = list(sentiment_counts.keys())
@@ -99,7 +99,7 @@ def analyze():
         sentiment_chart_path = BytesIO()
         plt.savefig(sentiment_chart_path, format='png')
         plt.close()
-        sentiment_chart_path.seek(0)
+        sentiment_chart_base64 = sentiment_chart_path.getvalue().hex()  # Encode as base64
 
         # Generate Top Keywords Bar Chart
         keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
@@ -110,15 +110,15 @@ def analyze():
         keywords_chart_path = BytesIO()
         plt.savefig(keywords_chart_path, format='png')
         plt.close()
-        keywords_chart_path.seek(0)
+        keywords_chart_base64 = keywords_chart_path.getvalue().hex()  # Encode as base64
 
         return jsonify({
             "avg_sentiment": avg_sentiment,
             "top_keywords": [{"keyword": k, "frequency": v} for k, v in top_keywords],
             "sentiment_counts": sentiment_counts,
-            "wordcloud": wordcloud_path.getvalue().hex(),
-            "sentiment_chart": sentiment_chart_path.getvalue().hex(),
-            "keywords_chart": keywords_chart_path.getvalue().hex()
+            "wordcloud": wordcloud_base64,
+            "sentiment_chart": sentiment_chart_base64,
+            "keywords_chart": keywords_chart_base64
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

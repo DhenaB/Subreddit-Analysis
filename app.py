@@ -4,6 +4,8 @@ import pandas as pd
 from collections import Counter
 from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 import os
 import nltk
 from dotenv import load_dotenv
@@ -53,7 +55,7 @@ def analyze_posts(posts):
     keyword_counts = Counter(keywords)
     top_keywords = keyword_counts.most_common(20)
     avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
-    return top_keywords, avg_sentiment, sentiment_counts
+    return top_keywords, avg_sentiment, sentiment_counts, keywords
 
 # Fetch posts from subreddit
 def fetch_posts(subreddit_name, time_filter="week", limit=500):
@@ -80,11 +82,43 @@ def analyze():
 
     try:
         posts = fetch_posts(subreddit_name)
-        top_keywords, avg_sentiment, sentiment_counts = analyze_posts(posts)
+        top_keywords, avg_sentiment, sentiment_counts, keywords = analyze_posts(posts)
+
+        # Generate Word Cloud
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
+        wordcloud_path = BytesIO()
+        wordcloud.to_image().save(wordcloud_path, format='PNG')
+        wordcloud_path.seek(0)
+
+        # Generate Sentiment Distribution Bar Chart
+        sentiment_labels = list(sentiment_counts.keys())
+        sentiment_values = list(sentiment_counts.values())
+        plt.figure(figsize=(6, 4))
+        plt.bar(sentiment_labels, sentiment_values, color=['green', 'blue', 'red'])
+        plt.title('Sentiment Distribution')
+        sentiment_chart_path = BytesIO()
+        plt.savefig(sentiment_chart_path, format='png')
+        plt.close()
+        sentiment_chart_path.seek(0)
+
+        # Generate Top Keywords Bar Chart
+        keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
+        plt.figure(figsize=(8, 4))
+        plt.barh(keywords_df['Keyword'], keywords_df['Frequency'], color='orange')
+        plt.xlabel('Frequency')
+        plt.title('Top Keywords')
+        keywords_chart_path = BytesIO()
+        plt.savefig(keywords_chart_path, format='png')
+        plt.close()
+        keywords_chart_path.seek(0)
+
         return jsonify({
             "avg_sentiment": avg_sentiment,
             "top_keywords": [{"keyword": k, "frequency": v} for k, v in top_keywords],
-            "sentiment_counts": sentiment_counts
+            "sentiment_counts": sentiment_counts,
+            "wordcloud": wordcloud_path.getvalue().hex(),
+            "sentiment_chart": sentiment_chart_path.getvalue().hex(),
+            "keywords_chart": keywords_chart_path.getvalue().hex()
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -97,15 +131,19 @@ def download():
 
     try:
         posts = fetch_posts(subreddit_name)
-        top_keywords, avg_sentiment, sentiment_counts = analyze_posts(posts)
+        top_keywords, avg_sentiment, sentiment_counts, _ = analyze_posts(posts)
 
         # Create a DataFrame for top keywords
         df_keywords = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
 
-        # Save DataFrame to an Excel file in memory
+        # Add sentiment counts to the DataFrame
+        df_sentiment = pd.DataFrame(list(sentiment_counts.items()), columns=["Sentiment", "Count"])
+
+        # Save DataFrames to an Excel file in memory
         output = BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df_keywords.to_excel(writer, sheet_name='Top Keywords', index=False)
+            df_sentiment.to_excel(writer, sheet_name='Sentiment Distribution', index=False)
         output.seek(0)
 
         # Return the Excel file as a downloadable response

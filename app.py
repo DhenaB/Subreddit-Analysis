@@ -15,6 +15,12 @@ import base64
 # Load environment variables
 load_dotenv()
 
+# Ensure NLTK resources are downloaded
+nltk.download('stopwords')
+nltk.download('vader_lexicon')
+
+# Rest of your code...
+
 # Reddit API credentials
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -35,8 +41,8 @@ nltk.download('vader_lexicon')
 
 # Analyze posts
 def analyze_posts(posts):
-    stop_words = set(stopwords.words('english'))
-    sia = SentimentIntensityAnalyzer()
+    stop_words = set(stopwords.words('english'))  # Requires 'stopwords' dataset
+    sia = SentimentIntensityAnalyzer()  # Requires 'vader_lexicon' dataset
     keywords = []
     sentiments = []
     sentiment_counts = {"Positive": 0, "Neutral": 0, "Negative": 0}

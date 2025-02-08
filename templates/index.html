@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Analysis of r/{{ subreddit }}</h1>
+        
+        <h2>Average Sentiment Polarity: {{ avg_sentiment|round(2) }}</h2>
+
+        <h3>Top Keywords</h3>
+        <ul>
+            {% for keyword, frequency in top_keywords %}
+                <li>{{ keyword }}: {{ frequency }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Sentiment Distribution</h3>
+        <ul>
+            <li>Positive: {{ sentiment_counts['Positive'] }}</li>
+            <li>Neutral: {{ sentiment_counts['Neutral'] }}</li>
+            <li>Negative: {{ sentiment_counts['Negative'] }}</li>
+        </ul>
+    </div>
+</body>
+</html>

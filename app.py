@@ -78,7 +78,9 @@ def fetch_posts(subreddit_name, time_filter="week", limit=500):
             "URL": post.url
         })
     return posts
-
+@app.route('/')
+def index():
+    return render_template('index.html')
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:

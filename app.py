@@ -74,15 +74,18 @@ def fetch_posts(subreddit_name, time_filter="week", limit=500):
 def index():
     return render_template('index.html')
 
-@app.route('/analyze')
+@app.route('/analyze', methods=['POST'])
 def analyze():
-    subreddit_name = request.args.get('subreddit')
+    data = request.json
+    subreddit_name = data.get('subreddit')
+    time_filter = data.get('time_filter', 'week')  # Default to "week" if not provided
+
     if not subreddit_name:
         return jsonify({"error": "Subreddit name is required"}), 400
 
     try:
-        print(f"Fetching posts for subreddit: {subreddit_name}")
-        posts = fetch_posts(subreddit_name)
+        print(f"Fetching posts for subreddit: {subreddit_name} with time filter: {time_filter}")
+        posts = fetch_posts(subreddit_name, time_filter=time_filter)
         print(f"Fetched {len(posts)} posts")
 
         print("Analyzing posts...")
@@ -133,15 +136,17 @@ def analyze():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route('/download')
+@app.route('/download', methods=['GET'])
 def download():
     subreddit_name = request.args.get('subreddit')
+    time_filter = request.args.get('time_filter', 'week')  # Default to "week" if not provided
+
     if not subreddit_name:
         return "Subreddit name is required", 400
 
     try:
-        print(f"Fetching posts for subreddit: {subreddit_name}")
-        posts = fetch_posts(subreddit_name)
+        print(f"Fetching posts for subreddit: {subreddit_name} with time filter: {time_filter}")
+        posts = fetch_posts(subreddit_name, time_filter=time_filter)
         print(f"Fetched {len(posts)} posts")
 
         print("Analyzing posts...")

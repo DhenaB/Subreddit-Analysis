@@ -8,23 +8,73 @@
 </head>
 <body>
     <div class="container">
-        <h1>Analysis of r/{{ subreddit }}</h1>
-        
-        <h2>Average Sentiment Polarity: {{ avg_sentiment|round(2) }}</h2>
+        <h1>Reddit Subreddit Analysis</h1>
 
-        <h3>Top Keywords</h3>
-        <ul>
-            {% for keyword, frequency in top_keywords %}
-                <li>{{ keyword }}: {{ frequency }}</li>
-            {% endfor %}
-        </ul>
+        <!-- Input Form -->
+        <form id="subreddit-form">
+            <label for="subreddit">Enter Subreddit Name:</label>
+            <input type="text" id="subreddit" name="subreddit" placeholder="e.g., politics" required>
+            <button type="submit">Analyze</button>
+        </form>
 
-        <h3>Sentiment Distribution</h3>
-        <ul>
-            <li>Positive: {{ sentiment_counts['Positive'] }}</li>
-            <li>Neutral: {{ sentiment_counts['Neutral'] }}</li>
-            <li>Negative: {{ sentiment_counts['Negative'] }}</li>
-        </ul>
+        <!-- Results Section -->
+        <div id="results" style="display: none;">
+            <h2>Analysis Results</h2>
+            <p><strong>Average Sentiment Polarity:</strong> <span id="avg-sentiment"></span></p>
+
+            <h3>Top Keywords</h3>
+            <ul id="keywords-list"></ul>
+
+            <h3>Sentiment Distribution</h3>
+            <ul id="sentiment-distribution"></ul>
+
+            <!-- Download Button -->
+            <a id="download-link" href="#" download="subreddit_analysis.xlsx">
+                <button>Download Results as Excel</button>
+            </a>
+        </div>
     </div>
+
+    <script>
+        // Handle form submission via JavaScript
+        document.getElementById('subreddit-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const subreddit = document.getElementById('subreddit').value;
+
+            // Fetch analysis results from the backend
+            const response = await fetch(`/analyze?subreddit=${encodeURIComponent(subreddit)}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                // Display results
+                document.getElementById('avg-sentiment').textContent = data.avg_sentiment.toFixed(2);
+
+                const keywordsList = document.getElementById('keywords-list');
+                keywordsList.innerHTML = ''; // Clear previous results
+                data.top_keywords.forEach(({ keyword, frequency }) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${keyword}: ${frequency}`;
+                    keywordsList.appendChild(li);
+                });
+
+                const sentimentDistribution = document.getElementById('sentiment-distribution');
+                sentimentDistribution.innerHTML = ''; // Clear previous results
+                for (const [sentiment, count] of Object.entries(data.sentiment_counts)) {
+                    const li = document.createElement('li');
+                    li.textContent = `${sentiment}: ${count}`;
+                    sentimentDistribution.appendChild(li);
+                }
+
+                // Update download link
+                document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}`;
+
+                // Show results section
+                document.getElementById('results').style.display = 'block';
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        });
+    </script>
 </body>
 </html>

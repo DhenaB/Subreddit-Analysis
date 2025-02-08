@@ -79,14 +79,20 @@
                     keywordsList.appendChild(li);
                 });
 
-                // Display Word Cloud
-                document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
+              <img id="wordcloud" src="" alt="Word Cloud">
+<img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
+<img id="keywords-chart" src="" alt="Top Keywords Chart">
 
-                // Display Sentiment Chart
-                document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
+<script>
+    // Display Word Cloud
+    document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
 
-                // Display Keywords Chart
-                document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
+    // Display Sentiment Chart
+    document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
+
+    // Display Keywords Chart
+    document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
+</script>
 
                 // Update download link
                 document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}&time_filter=${encodeURIComponent(timeFilter)}`;

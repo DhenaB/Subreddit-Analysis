@@ -1,21 +1,18 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify, send_file
 import praw
 import pandas as pd
 from collections import Counter
 from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-import nltk
-nltk.download('stopwords')
-nltk.download('vader_lexicon')  # If you're using sentiment analysis with VADER
 import os
+import nltk
 from dotenv import load_dotenv
+from io import BytesIO
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
-# Reddit API credentials (loaded from environment variables)
+# Reddit API credentials
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 USER_AGENT = os.getenv("USER_AGENT")
@@ -29,22 +26,9 @@ reddit = praw.Reddit(
 
 app = Flask(__name__)
 
-# Define the subreddit and time range
-SUBREDDIT_NAME = "politics"  # Subreddit to analyze
-TIME_FILTER = "week"  # Options: "day", "week", "month", "year", "all"
-
-# Fetch posts from the subreddit
-def fetch_posts(subreddit_name, time_filter):
-    subreddit = reddit.subreddit(subreddit_name)
-    posts = []
-    for post in subreddit.top(time_filter=time_filter, limit=500):  # Limit to 500 posts
-        posts.append({
-            "Title": post.title,
-            "Selftext": post.selftext,
-            "Score": post.score,
-            "URL": post.url
-        })
-    return posts
+# Ensure NLTK resources are downloaded
+nltk.download('stopwords')
+nltk.download('vader_lexicon')
 
 # Analyze posts
 def analyze_posts(posts):
@@ -71,21 +55,68 @@ def analyze_posts(posts):
     avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
     return top_keywords, avg_sentiment, sentiment_counts
 
+# Fetch posts from subreddit
+def fetch_posts(subreddit_name, time_filter="week", limit=500):
+    subreddit = reddit.subreddit(subreddit_name)
+    posts = []
+    for post in subreddit.top(time_filter=time_filter, limit=limit):
+        posts.append({
+            "Title": post.title,
+            "Selftext": post.selftext,
+            "Score": post.score,
+            "URL": post.url
+        })
+    return posts
+
 @app.route('/')
 def index():
-    print(f"Fetching posts from r/{SUBREDDIT_NAME}...")
-    posts = fetch_posts(SUBREDDIT_NAME, TIME_FILTER)
-    print("Analyzing posts...")
-    top_keywords, avg_sentiment, sentiment_counts = analyze_posts(posts)
-    
-    # Pass data to the frontend
-    return render_template(
-        'index.html',
-        subreddit=SUBREDDIT_NAME,
-        top_keywords=top_keywords,
-        avg_sentiment=avg_sentiment,
-        sentiment_counts=sentiment_counts
-    )
+    return render_template('index.html')
+
+@app.route('/analyze')
+def analyze():
+    subreddit_name = request.args.get('subreddit')
+    if not subreddit_name:
+        return jsonify({"error": "Subreddit name is required"}), 400
+
+    try:
+        posts = fetch_posts(subreddit_name)
+        top_keywords, avg_sentiment, sentiment_counts = analyze_posts(posts)
+        return jsonify({
+            "avg_sentiment": avg_sentiment,
+            "top_keywords": [{"keyword": k, "frequency": v} for k, v in top_keywords],
+            "sentiment_counts": sentiment_counts
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/download')
+def download():
+    subreddit_name = request.args.get('subreddit')
+    if not subreddit_name:
+        return "Subreddit name is required", 400
+
+    try:
+        posts = fetch_posts(subreddit_name)
+        top_keywords, avg_sentiment, sentiment_counts = analyze_posts(posts)
+
+        # Create a DataFrame for top keywords
+        df_keywords = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
+
+        # Save DataFrame to an Excel file in memory
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_keywords.to_excel(writer, sheet_name='Top Keywords', index=False)
+        output.seek(0)
+
+        # Return the Excel file as a downloadable response
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f"{subreddit_name}_analysis.xlsx"
+        )
+    except Exception as e:
+        return str(e), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

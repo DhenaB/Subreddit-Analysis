@@ -8,15 +8,15 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import nltk
 import os
+from dotenv import load_dotenv
 
-# Download NLTK resources
-nltk.download('stopwords')
-nltk.download('vader_lexicon')
+# Load environment variables from .env file
+load_dotenv()
 
-# Reddit API credentials
-CLIENT_ID = "aIs57lI5mkP_FNveAu6-_w"  # Replace with your actual Client ID
-CLIENT_SECRET = "twuIqlLAfy464jMDO2tBcBtkQaw0bw"  # Replace with your actual Client Secret
-USER_AGENT = "python:subreddit_keyword_analysis:v1.0 (by /u/HesiodAgain)"  # Replace with your User Agent
+# Reddit API credentials (loaded from environment variables)
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+USER_AGENT = os.getenv("USER_AGENT")
 
 # Initialize Reddit API
 reddit = praw.Reddit(

@@ -29,46 +29,60 @@ reddit = praw.Reddit(
 app = Flask(__name__)
 
 # Ensure NLTK resources are downloaded
-nltk.download('stopwords')
-nltk.download('vader_lexicon')
+try:
+    nltk.download('stopwords')
+    nltk.download('vader_lexicon')
+    print("NLTK resources downloaded successfully.")
+except Exception as e:
+    print(f"Error downloading NLTK resources: {e}")
 
 # Analyze posts
 def analyze_posts(posts):
-    stop_words = set(stopwords.words('english'))
-    sia = SentimentIntensityAnalyzer()
-    keywords = []
-    sentiments = []
-    sentiment_counts = {"Positive": 0, "Neutral": 0, "Negative": 0}
-    for post in posts:
-        text = f"{post['Title']} {post['Selftext']}"
-        words = text.split()
-        filtered_words = [word.lower() for word in words if word.lower() not in stop_words and len(word) > 3]
-        keywords.extend(filtered_words)
-        sentiment = sia.polarity_scores(text)['compound']
-        sentiments.append(sentiment)
-        if sentiment > 0.1:
-            sentiment_counts["Positive"] += 1
-        elif sentiment < -0.1:
-            sentiment_counts["Negative"] += 1
-        else:
-            sentiment_counts["Neutral"] += 1
-    keyword_counts = Counter(keywords)
-    top_keywords = keyword_counts.most_common(20)
-    avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
-    return top_keywords, avg_sentiment, sentiment_counts, keywords
+    try:
+        stop_words = set(stopwords.words('english'))
+        sia = SentimentIntensityAnalyzer()
+        keywords = []
+        sentiments = []
+        sentiment_counts = {"Positive": 0, "Neutral": 0, "Negative": 0}
+
+        for post in posts:
+            text = f"{post['Title']} {post['Selftext']}"
+            words = text.split()
+            filtered_words = [word.lower() for word in words if word.lower() not in stop_words and len(word) > 3]
+            keywords.extend(filtered_words)
+            sentiment = sia.polarity_scores(text)['compound']
+            sentiments.append(sentiment)
+            if sentiment > 0.1:
+                sentiment_counts["Positive"] += 1
+            elif sentiment < -0.1:
+                sentiment_counts["Negative"] += 1
+            else:
+                sentiment_counts["Neutral"] += 1
+
+        keyword_counts = Counter(keywords)
+        top_keywords = keyword_counts.most_common(20)
+        avg_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
+        return top_keywords, avg_sentiment, sentiment_counts, keywords
+    except Exception as e:
+        print(f"Error in analyze_posts: {e}")
+        raise
 
 # Fetch posts from subreddit
 def fetch_posts(subreddit_name, time_filter="week", limit=500):
-    subreddit = reddit.subreddit(subreddit_name)
-    posts = []
-    for post in subreddit.top(time_filter=time_filter, limit=limit):
-        posts.append({
-            "Title": post.title,
-            "Selftext": post.selftext,
-            "Score": post.score,
-            "URL": post.url
-        })
-    return posts
+    try:
+        subreddit = reddit.subreddit(subreddit_name)
+        posts = []
+        for post in subreddit.top(time_filter=time_filter, limit=limit):
+            posts.append({
+                "Title": post.title,
+                "Selftext": post.selftext,
+                "Score": post.score,
+                "URL": post.url
+            })
+        return posts
+    except Exception as e:
+        print(f"Error fetching posts: {e}")
+        raise
 
 @app.route('/')
 def index():
@@ -76,14 +90,14 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    data = request.json
-    subreddit_name = data.get('subreddit')
-    time_filter = data.get('time_filter', 'week')  # Default to "week" if not provided
-
-    if not subreddit_name:
-        return jsonify({"error": "Subreddit name is required"}), 400
-
     try:
+        data = request.json
+        subreddit_name = data.get('subreddit')
+        time_filter = data.get('time_filter', 'week')  # Default to "week"
+
+        if not subreddit_name:
+            return jsonify({"error": "Subreddit name is required"}), 400
+
         print(f"Fetching posts for subreddit: {subreddit_name} with time filter: {time_filter}")
         posts = fetch_posts(subreddit_name, time_filter=time_filter)
         print(f"Fetched {len(posts)} posts")
@@ -133,18 +147,17 @@ def analyze():
         })
     except Exception as e:
         print(f"Error in /analyze: {e}")
-        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/download', methods=['GET'])
 def download():
-    subreddit_name = request.args.get('subreddit')
-    time_filter = request.args.get('time_filter', 'week')  # Default to "week" if not provided
-
-    if not subreddit_name:
-        return "Subreddit name is required", 400
-
     try:
+        subreddit_name = request.args.get('subreddit')
+        time_filter = request.args.get('time_filter', 'week')  # Default to "week"
+
+        if not subreddit_name:
+            return "Subreddit name is required", 400
+
         print(f"Fetching posts for subreddit: {subreddit_name} with time filter: {time_filter}")
         posts = fetch_posts(subreddit_name, time_filter=time_filter)
         print(f"Fetched {len(posts)} posts")
@@ -178,7 +191,6 @@ def download():
         )
     except Exception as e:
         print(f"Error in /download: {e}")
-        traceback.print_exc()
         return str(e), 500
 
 if __name__ == '__main__':

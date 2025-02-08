@@ -14,6 +14,16 @@
         <form id="subreddit-form">
             <label for="subreddit">Enter Subreddit Name:</label>
             <input type="text" id="subreddit" name="subreddit" placeholder="e.g., politics" required>
+
+            <label for="time-filter">Select Time Frame:</label>
+            <select id="time-filter" name="time-filter">
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+                <option value="all">All Time</option>
+            </select>
+
             <button type="submit">Analyze</button>
         </form>
 
@@ -45,9 +55,16 @@
             event.preventDefault(); // Prevent default form submission
 
             const subreddit = document.getElementById('subreddit').value;
+            const timeFilter = document.getElementById('time-filter').value;
 
             // Fetch analysis results from the backend
-            const response = await fetch(`/analyze?subreddit=${encodeURIComponent(subreddit)}`);
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ subreddit, time_filter: timeFilter })
+            });
             const data = await response.json();
 
             if (response.ok) {
@@ -72,7 +89,7 @@
                 document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
 
                 // Update download link
-                document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}`;
+                document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}&time_filter=${encodeURIComponent(timeFilter)}`;
 
                 // Show results section
                 document.getElementById('results').style.display = 'block';

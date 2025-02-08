@@ -1,113 +1,143 @@
-<div class="container">
-    <div class="stock-market-performance">
-        <h3>Today's Stock Market Performance</h3>
-        <ul id="stock-market-data"></ul>
-    </div>
-
-    <h1>Reddit Subreddit Analysis</h1>
-
-    <!-- Input Form -->
-    <form id="subreddit-form">
-        <label for="subreddit">Enter Subreddit Name:</label>
-        <input type="text" id="subreddit" name="subreddit" placeholder="e.g., politics" required>
-
-        <label for="time-filter">Select Time Frame:</label>
-        <select id="time-filter" name="time-filter">
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
-            <option value="all">All Time</option>
-        </select>
-
-        <button type="submit">Analyze</button>
-    </form>
-
-    <!-- Results Section -->
-    <div id="results" style="display: none;">
-        <h2>Analysis Results</h2>
-        <p><strong>Average Sentiment Polarity:</strong> <span id="avg-sentiment"></span></p>
-
-        <h3>Word Cloud</h3>
-        <img id="wordcloud" src="" alt="Word Cloud">
-
-        <h3>Sentiment Distribution</h3>
-        <img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
-
-        <h3>Top Keywords</h3>
-        <img id="keywords-chart" src="" alt="Top Keywords Chart">
-
-        <ul id="keywords-list"></ul>
-
-        <!-- Download Button -->
-        <a id="download-link" href="#" download="subreddit_analysis.xlsx">
-            <button>Download Results as Excel</button>
-        </a>
-    </div>
-</div>
-
-<script>
-    document.getElementById('subreddit-form').addEventListener('submit', async function(event) {
-        event.preventDefault(); // Prevent default form submission
-
-        const subreddit = document.getElementById('subreddit').value;
-        const timeFilter = document.getElementById('time-filter').value;
-
-        try {
-            // Fetch analysis results from the backend
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ subreddit, time_filter: timeFilter })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Display stock market performance
-            const stockMarketData = data.stock_market_performance;
-            const stockMarketList = document.getElementById('stock-market-data');
-            stockMarketList.innerHTML = ''; // Clear previous data
-            if (stockMarketData) {
-                for (const [index, performance] of Object.entries(stockMarketData)) {
-                    const li = document.createElement('li');
-                    li.textContent = `${index}: Close=${performance.Close}, Change=${performance.Change}, % Change=${performance['Percent Change']}%`;
-                    stockMarketList.appendChild(li);
-                }
-            }
-
-            // Display results
-            document.getElementById('avg-sentiment').textContent = data.avg_sentiment.toFixed(2);
-
-            const keywordsList = document.getElementById('keywords-list');
-            keywordsList.innerHTML = ''; // Clear previous results
-            data.top_keywords.forEach(({ keyword, frequency }) => {
-                const li = document.createElement('li');
-                li.textContent = `${keyword}: ${frequency}`;
-                keywordsList.appendChild(li);
-            });
-
-            // Display Word Cloud
-            document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
-
-            // Display Sentiment Chart
-            document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
-
-            // Display Keywords Chart
-            document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
-
-            // Update download link
-            document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}&time_filter=${encodeURIComponent(timeFilter)}`;
-
-            // Show results section
-            document.getElementById('results').style.display = 'block';
-        } catch (error) {
-            alert(`Error: ${error.message}`);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Subreddit Analysis</title>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-    });
-</script>
+        .stock-performance {
+            float: right;
+            margin-bottom: 20px;
+        }
+        .stock-performance ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .stock-performance li {
+            margin-bottom: 5px;
+        }
+        .stock-performance .positive {
+            color: green;
+        }
+        .stock-performance .negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Stock Market Performance -->
+        <div class="stock-performance">
+            <h3>Today's Stock Market Performance</h3>
+            <ul>
+                {% if stock_performance %}
+                    {% for index, change in stock_performance.items() %}
+                        <li>
+                            {{ index }}: 
+                            {% if change >= 0 %}
+                                <span class="positive">+{{ change }}%</span>
+                            {% else %}
+                                <span class="negative">{{ change }}%</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>Unable to fetch stock market performance.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <h1>Reddit Subreddit Analysis</h1>
+
+        <!-- Input Form -->
+        <form id="subreddit-form">
+            <label for="subreddit">Enter Subreddit Name:</label>
+            <input type="text" id="subreddit" name="subreddit" placeholder="e.g., politics" required>
+
+            <label for="time-filter">Select Time Frame:</label>
+            <select id="time-filter" name="time-filter">
+                <option value="day">Day</option>
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+                <option value="all">All Time</option>
+            </select>
+
+            <button type="submit">Analyze</button>
+        </form>
+
+        <!-- Results Section -->
+        <div id="results" style="display: none;">
+            <h2>Analysis Results</h2>
+            <p><strong>Average Sentiment Polarity:</strong> <span id="avg-sentiment"></span></p>
+
+            <h3>Word Cloud</h3>
+            <img id="wordcloud" src="" alt="Word Cloud">
+
+            <h3>Sentiment Distribution</h3>
+            <img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
+
+            <h3>Top Keywords</h3>
+            <img id="keywords-chart" src="" alt="Top Keywords Chart">
+
+            <ul id="keywords-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('subreddit-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const subreddit = document.getElementById('subreddit').value;
+            const timeFilter = document.getElementById('time-filter').value;
+
+            try {
+                // Fetch analysis results from the backend
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ subreddit, time_filter: timeFilter })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Display results
+                document.getElementById('avg-sentiment').textContent = data.avg_sentiment.toFixed(2);
+
+                const keywordsList = document.getElementById('keywords-list');
+                keywordsList.innerHTML = ''; // Clear previous results
+                data.top_keywords.forEach(({ keyword, frequency }) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${keyword}: ${frequency}`;
+                    keywordsList.appendChild(li);
+                });
+
+                // Display Word Cloud
+                document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
+
+                // Display Sentiment Chart
+                document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
+
+                // Display Keywords Chart
+                document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
+
+                // Show results section
+                document.getElementById('results').style.display = 'block';
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

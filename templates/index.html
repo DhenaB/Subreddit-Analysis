@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reddit Analysis</title>
+    <title>Reddit Subreddit Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -57,17 +57,26 @@
             const subreddit = document.getElementById('subreddit').value;
             const timeFilter = document.getElementById('time-filter').value;
 
-            // Fetch analysis results from the backend
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ subreddit, time_filter: timeFilter })
-            });
-            const data = await response.json();
+            // Show loading indicator (optional)
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'none';
 
-            if (response.ok) {
+            try {
+                // Fetch analysis results from the backend
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ subreddit, time_filter: timeFilter })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
                 // Display results
                 document.getElementById('avg-sentiment').textContent = data.avg_sentiment.toFixed(2);
 
@@ -79,28 +88,22 @@
                     keywordsList.appendChild(li);
                 });
 
-              <img id="wordcloud" src="" alt="Word Cloud">
-<img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
-<img id="keywords-chart" src="" alt="Top Keywords Chart">
+                // Display Word Cloud
+                document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
 
-<script>
-    // Display Word Cloud
-    document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
+                // Display Sentiment Chart
+                document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
 
-    // Display Sentiment Chart
-    document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
-
-    // Display Keywords Chart
-    document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
-</script>
+                // Display Keywords Chart
+                document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
 
                 // Update download link
                 document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}&time_filter=${encodeURIComponent(timeFilter)}`;
 
                 // Show results section
-                document.getElementById('results').style.display = 'block';
-            } else {
-                alert(`Error: ${data.error}`);
+                resultsDiv.style.display = 'block';
+            } catch (error) {
+                alert(`Error: ${error.message}`);
             }
         });
     </script>

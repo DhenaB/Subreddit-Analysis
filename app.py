@@ -7,6 +7,8 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import nltk
+nltk.download('stopwords')
+nltk.download('vader_lexicon')  # If you're using sentiment analysis with VADER
 import os
 from dotenv import load_dotenv
 

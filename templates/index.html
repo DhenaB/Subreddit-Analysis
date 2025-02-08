@@ -22,11 +22,16 @@
             <h2>Analysis Results</h2>
             <p><strong>Average Sentiment Polarity:</strong> <span id="avg-sentiment"></span></p>
 
-            <h3>Top Keywords</h3>
-            <ul id="keywords-list"></ul>
+            <h3>Word Cloud</h3>
+            <img id="wordcloud" src="" alt="Word Cloud">
 
             <h3>Sentiment Distribution</h3>
-            <ul id="sentiment-distribution"></ul>
+            <img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
+
+            <h3>Top Keywords</h3>
+            <img id="keywords-chart" src="" alt="Top Keywords Chart">
+
+            <ul id="keywords-list"></ul>
 
             <!-- Download Button -->
             <a id="download-link" href="#" download="subreddit_analysis.xlsx">
@@ -36,7 +41,6 @@
     </div>
 
     <script>
-        // Handle form submission via JavaScript
         document.getElementById('subreddit-form').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
 
@@ -58,13 +62,14 @@
                     keywordsList.appendChild(li);
                 });
 
-                const sentimentDistribution = document.getElementById('sentiment-distribution');
-                sentimentDistribution.innerHTML = ''; // Clear previous results
-                for (const [sentiment, count] of Object.entries(data.sentiment_counts)) {
-                    const li = document.createElement('li');
-                    li.textContent = `${sentiment}: ${count}`;
-                    sentimentDistribution.appendChild(li);
-                }
+                // Display Word Cloud
+                document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
+
+                // Display Sentiment Chart
+                document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
+
+                // Display Keywords Chart
+                document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
 
                 // Update download link
                 document.getElementById('download-link').href = `/download?subreddit=${encodeURIComponent(subreddit)}`;

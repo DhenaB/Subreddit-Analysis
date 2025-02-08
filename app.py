@@ -73,10 +73,6 @@ def fetch_posts(subreddit_name, time_filter="week", limit=500):
         })
     return posts
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -96,44 +92,35 @@ def analyze():
         print(f"Analysis complete. Top keywords: {top_keywords}")
 
         # Generate Word Cloud
-        try:
-            wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
-            wordcloud_path = BytesIO()
-            wordcloud.to_image().save(wordcloud_path, format='PNG')
-            wordcloud_base64 = base64.b64encode(wordcloud_path.getvalue()).decode('utf-8')  # Encode as base64
-        except Exception as e:
-            print(f"Error generating Word Cloud: {e}")
-            wordcloud_base64 = None
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
+        wordcloud_path = BytesIO()
+        wordcloud.to_image().save(wordcloud_path, format='PNG')
+        wordcloud_base64 = base64.b64encode(wordcloud_path.getvalue()).decode('utf-8')
 
         # Generate Sentiment Distribution Bar Chart
-        try:
-            sentiment_labels = list(sentiment_counts.keys())
-            sentiment_values = list(sentiment_counts.values())
-            plt.figure(figsize=(6, 4))
-            plt.bar(sentiment_labels, sentiment_values, color=['green', 'blue', 'red'])
-            plt.title('Sentiment Distribution')
-            sentiment_chart_path = BytesIO()
-            plt.savefig(sentiment_chart_path, format='png')
-            plt.close()
-            sentiment_chart_base64 = base64.b64encode(sentiment_chart_path.getvalue()).decode('utf-8')  # Encode as base64
-        except Exception as e:
-            print(f"Error generating Sentiment Chart: {e}")
-            sentiment_chart_base64 = None
+        sentiment_labels = list(sentiment_counts.keys())
+        sentiment_values = list(sentiment_counts.values())
+        plt.figure(figsize=(6, 4))
+        plt.bar(sentiment_labels, sentiment_values, color=['green', 'blue', 'red'])
+        plt.title('Sentiment Distribution')
+        sentiment_chart_path = BytesIO()
+        plt.savefig(sentiment_chart_path, format='png')
+        plt.close()
+        sentiment_chart_base64 = base64.b64encode(sentiment_chart_path.getvalue()).decode('utf-8')
 
         # Generate Top Keywords Bar Chart
-        try:
-            keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
-            plt.figure(figsize=(8, 4))
-            plt.barh(keywords_df['Keyword'], keywords_df['Frequency'], color='orange')
-            plt.xlabel('Frequency')
-            plt.title('Top Keywords')
-            keywords_chart_path = BytesIO()
-            plt.savefig(keywords_chart_path, format='png')
-            plt.close()
-            keywords_chart_base64 = base64.b64encode(keywords_chart_path.getvalue()).decode('utf-8')  # Encode as base64
-        except Exception as e:
-            print(f"Error generating Keywords Chart: {e}")
-            keywords_chart_base64 = None
+        keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
+        plt.figure(figsize=(8, 4))
+        plt.barh(keywords_df['Keyword'], keywords_df['Frequency'], color='orange')
+        plt.xlabel('Frequency')
+        plt.title('Top Keywords')
+        keywords_chart_path = BytesIO()
+        plt.savefig(keywords_chart_path, format='png')
+        plt.close()
+        keywords_chart_base64 = base64.b64encode(keywords_chart_path.getvalue()).decode('utf-8')
+
+        # Fetch stock market performance
+        stock_market_performance = get_stock_market_performance()
 
         return jsonify({
             "avg_sentiment": avg_sentiment,
@@ -141,7 +128,8 @@ def analyze():
             "sentiment_counts": sentiment_counts,
             "wordcloud": wordcloud_base64,
             "sentiment_chart": sentiment_chart_base64,
-            "keywords_chart": keywords_chart_base64
+            "keywords_chart": keywords_chart_base64,
+            "stock_market_performance": stock_market_performance
         })
     except Exception as e:
         print(f"Error in /analyze: {e}")
@@ -193,3 +181,31 @@ def download():
 
 if __name__ == '__main__':
     app.run(debug=True)
+import yfinance as yf
+
+def get_stock_market_performance():
+    try:
+        # Define stock market indices
+        indices = {
+            "S&P 500": "^GSPC",
+            "Dow Jones": "^DJI",
+            "NASDAQ": "^IXIC"
+        }
+
+        performance = {}
+        for name, ticker in indices.items():
+            data = yf.Ticker(ticker).history(period="1d")
+            if not data.empty:
+                close_price = data['Close'].iloc[-1]
+                open_price = data['Open'].iloc[0]
+                change = close_price - open_price
+                percent_change = (change / open_price) * 100
+                performance[name] = {
+                    "Close": round(close_price, 2),
+                    "Change": round(change, 2),
+                    "Percent Change": round(percent_change, 2)
+                }
+        return performance
+    except Exception as e:
+        print(f"Error fetching stock market performance: {e}")
+        return None

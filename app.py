@@ -107,35 +107,31 @@ def analyze():
         print(f"Analysis complete. Top keywords: {top_keywords}")
 
         # Generate Word Cloud
-        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
-        wordcloud_path = BytesIO()
-        wordcloud.to_image().save(wordcloud_path, format='PNG')
-        wordcloud_base64 = wordcloud_path.getvalue().hex()  # Encode as base64
-        print("Generated Word Cloud")
+wordcloud = WordCloud(width=800, height=400, background_color='white').generate(" ".join(keywords))
+wordcloud_path = BytesIO()
+wordcloud.to_image().save(wordcloud_path, format='PNG')
+wordcloud_base64 = wordcloud_path.getvalue().hex()  # Encode as base64
 
-        # Generate Sentiment Distribution Bar Chart
-        sentiment_labels = list(sentiment_counts.keys())
-        sentiment_values = list(sentiment_counts.values())
-        plt.figure(figsize=(6, 4))
-        plt.bar(sentiment_labels, sentiment_values, color=['green', 'blue', 'red'])
-        plt.title('Sentiment Distribution')
-        sentiment_chart_path = BytesIO()
-        plt.savefig(sentiment_chart_path, format='png')
-        plt.close()
-        sentiment_chart_base64 = sentiment_chart_path.getvalue().hex()  # Encode as base64
-        print("Generated Sentiment Chart")
+# Generate Sentiment Distribution Bar Chart
+plt.figure(figsize=(6, 4))
+plt.bar(sentiment_counts.keys(), sentiment_counts.values(), color=['green', 'blue', 'red'])
+plt.title('Sentiment Distribution')
+sentiment_chart_path = BytesIO()
+plt.savefig(sentiment_chart_path, format='png')
+plt.close()
+sentiment_chart_base64 = sentiment_chart_path.getvalue().hex()  # Encode as base64
 
-        # Generate Top Keywords Bar Chart
-        keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
-        plt.figure(figsize=(8, 4))
-        plt.barh(keywords_df['Keyword'], keywords_df['Frequency'], color='orange')
-        plt.xlabel('Frequency')
-        plt.title('Top Keywords')
-        keywords_chart_path = BytesIO()
-        plt.savefig(keywords_chart_path, format='png')
-        plt.close()
-        keywords_chart_base64 = keywords_chart_path.getvalue().hex()  # Encode as base64
-        print("Generated Keywords Chart")
+# Generate Top Keywords Bar Chart
+keywords_df = pd.DataFrame(top_keywords, columns=["Keyword", "Frequency"])
+plt.figure(figsize=(8, 4))
+plt.barh(keywords_df['Keyword'], keywords_df['Frequency'], color='orange')
+plt.xlabel('Frequency')
+plt.title('Top Keywords')
+keywords_chart_path = BytesIO()
+plt.savefig(keywords_chart_path, format='png')
+plt.close()
+keywords_chart_base64 = base64.b64encode(keywords_chart_path.getvalue()).decode('utf-8')  # Correct base64 encoding        
+print("Generated Keywords Chart")
 
         return jsonify({
             "avg_sentiment": avg_sentiment,

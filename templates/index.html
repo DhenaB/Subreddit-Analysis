@@ -3,56 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reddit Subreddit Analysis</title>
-    <style>
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .stock-performance {
-            float: right;
-            margin-bottom: 20px;
-        }
-        .stock-performance ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .stock-performance li {
-            margin-bottom: 5px;
-        }
-        .stock-performance .positive {
-            color: green;
-        }
-        .stock-performance .negative {
-            color: red;
-        }
-    </style>
+    <title>Subreddit Analysis</title>
 </head>
 <body>
-    <div class="container">
-        <!-- Stock Market Performance -->
-        <div class="stock-performance">
-            <h3>Today's Stock Market Performance</h3>
-            <ul>
-                {% if stock_performance %}
-                    {% for index, change in stock_performance.items() %}
-                        <li>
-                            {{ index }}: 
-                            {% if change >= 0 %}
-                                <span class="positive">+{{ change }}%</span>
-                            {% else %}
-                                <span class="negative">{{ change }}%</span>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                {% else %}
-                    <li>Unable to fetch stock market performance.</li>
-                {% endif %}
-            </ul>
-        </div>
 
-        <h1>Reddit Subreddit Analysis</h1>
+        <h1>Subreddit Analysis</h1>
 
         <!-- Input Form -->
         <form id="subreddit-form">

@@ -231,7 +231,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(HTTP error! Status: ${response.status});
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -242,18 +242,19 @@
                 keywordsList.innerHTML = '';
                 data.top_keywords.forEach(({ keyword, frequency }) => {
                     const li = document.createElement('li');
-                    li.textContent = ${keyword}: ${frequency};
+                    li.textContent = `${keyword}: ${frequency}`;
                     keywordsList.appendChild(li);
                 });
 
-                document.getElementById('wordcloud').src = data:image/png;base64,${data.wordcloud};
-                document.getElementById('sentiment-chart').src = data:image/png;base64,${data.sentiment_chart};
+                document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
+                document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
 
                 document.getElementById('results').style.display = 'block';
             } catch (error) {
-                alert(Error: ${error.message});
+                alert(`Error: ${error.message}`);
             }
         });
     </script>
 </body>
 </html>
+

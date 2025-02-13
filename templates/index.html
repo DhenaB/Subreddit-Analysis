@@ -6,7 +6,7 @@
     <title>Subreddit Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-       
+        /* Basic Page Styling */
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #eef1f7;
@@ -81,10 +81,19 @@
         /* Results Section */
         .results-container {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
             margin-top: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
         }
 
         .result-card {
@@ -93,7 +102,7 @@
             border-radius: 12px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease-in-out;
-            width: 350px;
+            width: 100%;
             text-align: center;
             border-left: 5px solid #3498db;
         }
@@ -105,20 +114,54 @@
         .result-card h2 {
             color: #2c3e50;
             margin-bottom: 10px;
+            font-size: 18px;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            justify-content: center;
+        /* Word Cloud - Larger */
+        .wordcloud-container img {
+            width: 100%;
+            height: auto;
+            max-height: 250px;
+            object-fit: contain;
         }
 
-        img {
-            max-width: 100%;
+        /* Sentiment & Charts */
+        .chart-container img {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+        }
+
+        /* Scrollable Keyword List */
+        .keywords-list-container {
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 10px;
             border-radius: 8px;
-            margin-top: 10px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
         }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        li {
+            background: #dde3ea;
+            margin: 6px 0;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background 0.3s ease-in-out;
+        }
+
+        li:hover {
+            background: #c7d0db;
+        }
+
     </style>
 </head>
 <body>
@@ -149,24 +192,25 @@
         
         <div class="grid">
             <div class="result-card">
-                <h2>Average Sentiment Polarity</h2>
+                <h2>Sentiment Polarity</h2>
                 <p><strong>Score:</strong> <span id="avg-sentiment"></span></p>
             </div>
 
-            <div class="result-card">
+            <div class="result-card wordcloud-container">
                 <h2>Word Cloud</h2>
                 <img id="wordcloud" src="" alt="Word Cloud">
             </div>
 
-            <div class="result-card">
+            <div class="result-card chart-container">
                 <h2>Sentiment Distribution</h2>
                 <img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
             </div>
 
             <div class="result-card">
                 <h2>Top Keywords</h2>
-                <img id="keywords-chart" src="" alt="Top Keywords Chart">
-                <ul id="keywords-list"></ul>
+                <div class="keywords-list-container">
+                    <ul id="keywords-list"></ul>
+                </div>
             </div>
         </div>
 
@@ -174,18 +218,15 @@
 
     <script>
         document.getElementById('subreddit-form').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
             const subreddit = document.getElementById('subreddit').value;
             const timeFilter = document.getElementById('time-filter').value;
 
             try {
-                // Fetch analysis results from the backend
                 const response = await fetch('/analyze', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subreddit, time_filter: timeFilter })
                 });
 
@@ -195,27 +236,19 @@
 
                 const data = await response.json();
 
-                // Display results
                 document.getElementById('avg-sentiment').textContent = data.avg_sentiment.toFixed(2);
 
                 const keywordsList = document.getElementById('keywords-list');
-                keywordsList.innerHTML = ''; // Clear previous results
+                keywordsList.innerHTML = '';
                 data.top_keywords.forEach(({ keyword, frequency }) => {
                     const li = document.createElement('li');
                     li.textContent = `${keyword}: ${frequency}`;
                     keywordsList.appendChild(li);
                 });
 
-                // Display Word Cloud
                 document.getElementById('wordcloud').src = `data:image/png;base64,${data.wordcloud}`;
-
-                // Display Sentiment Chart
                 document.getElementById('sentiment-chart').src = `data:image/png;base64,${data.sentiment_chart}`;
 
-                // Display Keywords Chart
-                document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
-
-                // Show results section
                 document.getElementById('results').style.display = 'block';
             } catch (error) {
                 alert(`Error: ${error.message}`);
@@ -224,4 +257,3 @@
     </script>
 </body>
 </html>
-

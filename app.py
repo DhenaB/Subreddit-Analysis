@@ -74,33 +74,6 @@ def fetch_posts(subreddit_name, time_filter="week", limit=500):
         })
     return posts
 
-# Fetch stock market performance
-def get_stock_market_performance():
-    try:
-        # Define stock market indices
-        indices = {
-            "S&P 500": "^GSPC",
-            "Dow Jones": "^DJI",
-            "NASDAQ": "^IXIC"
-        }
-
-        performance = {}
-        for name, ticker in indices.items():
-            data = yf.Ticker(ticker).history(period="1d")
-            if not data.empty:
-                close_price = data['Close'].iloc[-1]
-                open_price = data['Open'].iloc[0]
-                percent_change = ((close_price - open_price) / open_price) * 100
-                performance[name] = round(percent_change, 2)
-        return performance
-    except Exception as e:
-        print(f"Error fetching stock market performance: {e}")
-        return None
-
-@app.route('/')
-def index():
-    stock_performance = get_stock_market_performance()
-    return render_template('index.html', stock_performance=stock_performance)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():

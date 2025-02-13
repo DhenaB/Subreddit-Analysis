@@ -9,7 +9,7 @@
         /* Basic Page Styling */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fc; /* Light background */
+            background: linear-gradient(to right, #f0f8ff, #ffffff); /* Light gradient */
             margin: 0;
             padding: 0;
             display: flex;
@@ -20,22 +20,22 @@
             padding: 40px;
         }
 
-        /* Input Section - Bright Color */
+        /* Input Section - Blue */
         .input-container {
             max-width: 550px;
             padding: 30px;
-            background: #ffcc00; /* Bright Yellow Input Form */
+            background: #007bff; /* Bold Blue Input Card */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border-radius: 15px;
             text-align: center;
             margin-bottom: 30px;
-            color: black;
+            color: white;
         }
 
         .input-container h1 {
             font-size: 28px;
-            font-weight: 700;
-            color: #333; /* Ensure Headline Visibility */
+            font-weight: 800; /* Bold Font */
+            color: white; /* Ensure Headline Visibility */
             margin-bottom: 20px;
         }
 
@@ -48,9 +48,9 @@
         }
 
         label {
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 5px;
-            color: black;
+            color: white;
         }
 
         input, select {
@@ -60,24 +60,25 @@
             border-radius: 8px;
             background: #ffffff;
             font-size: 16px;
+            font-weight: bold;
             outline: none;
         }
 
         button {
-            background: #007bff; /* Bright Blue Button */
-            color: white;
+            background: #ffcc00; /* Yellow Button */
+            color: black;
             border: none;
             padding: 14px 22px;
             border-radius: 10px;
             font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
             transition: background 0.3s ease-in-out, transform 0.2s;
             margin-top: 10px;
-            font-weight: bold;
         }
 
         button:hover {
-            background: #0056b3;
+            background: #e6b800;
             transform: translateY(-3px);
         }
 
@@ -93,7 +94,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive Grid */
             gap: 30px;
             width: 100%;
             justify-content: center;
@@ -101,14 +102,13 @@
 
         .result-card {
             background: #ffffff; /* White Cards */
-            padding: 35px;
-            border-radius: 18px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s ease-in-out;
-            width: 100%;
             text-align: center;
-            border-left: 8px solid #007bff;
-            color: black;
+            border-left: 10px solid #007bff;
+            font-weight: bold;
         }
 
         .result-card:hover {
@@ -116,9 +116,24 @@
         }
 
         .result-card h2 {
-            font-size: 22px;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 900;
             margin-bottom: 20px;
+        }
+
+        /* Sentiment Polarity - Centered */
+        .polarity-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+        }
+
+        .polarity-score {
+            font-size: 48px;
+            font-weight: 900;
+            color: #007bff;
         }
 
         /* Word Cloud - Larger */
@@ -137,35 +152,15 @@
             object-fit: contain;
         }
 
-        /* Scrollable Keyword List */
-        .keywords-list-container {
-            max-height: 250px;
-            overflow-y: auto;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid #ddd;
-            background: #f1f1f1;
-            color: black;
-        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .input-container {
+                width: 90%;
+            }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
-            text-align: left;
-        }
-
-        li {
-            background: #dde2eb;
-            margin: 8px 0;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 16px;
-            color: black;
-            transition: background 0.3s ease-in-out;
-        }
-
-        li:hover {
-            background: #cfd8e3;
+            .grid {
+                grid-template-columns: 1fr; /* Stacks cards on smaller screens */
+            }
         }
 
     </style>
@@ -197,9 +192,9 @@
     <div class="results-container" id="results" style="display: none;">
         
         <div class="grid">
-            <div class="result-card">
+            <div class="result-card polarity-card">
                 <h2>Sentiment Polarity</h2>
-                <p><strong>Score:</strong> <span id="avg-sentiment"></span></p>
+                <div class="polarity-score" id="avg-sentiment">0.00</div>
             </div>
 
             <div class="result-card wordcloud-container">
@@ -263,4 +258,3 @@
     </script>
 </body>
 </html>
-

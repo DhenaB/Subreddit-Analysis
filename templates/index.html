@@ -13,15 +13,16 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-direction: row;
             justify-content: center;
+            align-items: flex-start;
             min-height: 100vh;
+            padding: 40px;
         }
 
+        /* Left side: Form container */
         .container {
-            max-width: 600px;
-            margin: 50px auto;
+            max-width: 400px;
             padding: 25px;
             background: #ffffff;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
@@ -76,19 +77,26 @@
             transform: translateY(-2px);
         }
 
-        /* Results Section */
-        #results {
-            display: none;
-            background: #ffffff;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            max-width: 600px;
-            text-align: center;
+        /* Right side: Results Section */
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 40px;
         }
 
-        #results h2 {
+        .result-card {
+            background: #ffffff;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 350px;
+            text-align: center;
+            border-left: 5px solid #3498db;
+        }
+
+        .result-card h2 {
             color: #2c3e50;
             margin-bottom: 10px;
         }
@@ -120,6 +128,7 @@
     </style>
 </head>
 <body>
+    <!-- Left Side: Form -->
     <div class="container">
         <h1>Subreddit Analysis</h1>
 
@@ -141,21 +150,30 @@
         </form>
     </div>
 
-    <!-- Results Section -->
-    <div id="results">
-        <h2>Analysis Results</h2>
-        <p><strong>Average Sentiment Polarity:</strong> <span id="avg-sentiment"></span></p>
+    <!-- Right Side: Results -->
+    <div class="results-container" id="results" style="display: none;">
+        
+        <div class="result-card">
+            <h2>Average Sentiment Polarity</h2>
+            <p><strong>Score:</strong> <span id="avg-sentiment"></span></p>
+        </div>
 
-        <h3>Word Cloud</h3>
-        <img id="wordcloud" src="" alt="Word Cloud">
+        <div class="result-card">
+            <h2>Word Cloud</h2>
+            <img id="wordcloud" src="" alt="Word Cloud">
+        </div>
 
-        <h3>Sentiment Distribution</h3>
-        <img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
+        <div class="result-card">
+            <h2>Sentiment Distribution</h2>
+            <img id="sentiment-chart" src="" alt="Sentiment Distribution Chart">
+        </div>
 
-        <h3>Top Keywords</h3>
-        <img id="keywords-chart" src="" alt="Top Keywords Chart">
+        <div class="result-card">
+            <h2>Top Keywords</h2>
+            <img id="keywords-chart" src="" alt="Top Keywords Chart">
+            <ul id="keywords-list"></ul>
+        </div>
 
-        <ul id="keywords-list"></ul>
     </div>
 
     <script>
@@ -202,7 +220,7 @@
                 document.getElementById('keywords-chart').src = `data:image/png;base64,${data.keywords_chart}`;
 
                 // Show results section
-                document.getElementById('results').style.display = 'block';
+                document.getElementById('results').style.display = 'flex';
             } catch (error) {
                 alert(`Error: ${error.message}`);
             }
@@ -210,4 +228,3 @@
     </script>
 </body>
 </html>
-

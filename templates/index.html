@@ -9,7 +9,7 @@
         /* Basic Page Styling */
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(to right, #f0f8ff, #ffffff); /* Light gradient */
+            background: #f8f9fc; /* Light background */
             margin: 0;
             padding: 0;
             display: flex;
@@ -24,7 +24,7 @@
         .input-container {
             max-width: 550px;
             padding: 30px;
-            background: #007bff; /* Bold Blue Input Card */
+            background: #007bff; /* Blue Input Card */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border-radius: 15px;
             text-align: center;
@@ -35,7 +35,7 @@
         .input-container h1 {
             font-size: 28px;
             font-weight: 800; /* Bold Font */
-            color: white; /* Ensure Headline Visibility */
+            color: white;
             margin-bottom: 20px;
         }
 
@@ -82,7 +82,7 @@
             transform: translateY(-3px);
         }
 
-        /* Results Section - Bigger Cards */
+        /* Results Section */
         .results-container {
             display: flex;
             flex-direction: column;
@@ -94,7 +94,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive Grid */
+            grid-template-columns: repeat(2, 1fr);
             gap: 30px;
             width: 100%;
             justify-content: center;
@@ -106,6 +106,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             transition: transform 0.2s ease-in-out;
+            width: 100%;
             text-align: center;
             border-left: 10px solid #007bff;
             font-weight: bold;
@@ -116,7 +117,7 @@
         }
 
         .result-card h2 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 900;
             margin-bottom: 20px;
         }
@@ -159,7 +160,8 @@
             }
 
             .grid {
-                grid-template-columns: 1fr; /* Stacks cards on smaller screens */
+                grid-template-columns: repeat(2, 1fr); /* Keeps your 2-column layout */
+                gap: 20px;
             }
         }
 
